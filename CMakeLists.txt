@@ -31,6 +31,13 @@ target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/inc
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+add_custom_target(
+    copy_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+    "${CMAKE_CURRENT_BINARY_DIR}/assets"
+)
+
 target_include_directories(
   ${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -38,3 +45,4 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw glm::glm glad)
+add_dependencies(${PROJECT_NAME} copy_assets)
