@@ -1,7 +1,5 @@
-#include <fstream>
 #include <format>
 #include <iostream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -12,6 +10,11 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "camera.h"
+#include "shader.h"
+#include "window.h"
 
 template <typename...T>
 std::string fmt(std::format_string<T...> fmt_str, T&&... args)
@@ -60,236 +63,48 @@ void gl_debug_output(GLenum source, GLenum type, unsigned int id, GLenum severit
 
 }
 
-void resize_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void mouse_click_callback(GLFWwindow* window, int button, int action, int mods)
-{
-}
-
-void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
-{
-}
-
-void keybinding_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
-
-    if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
-        int mode[2];
-        glGetIntegerv(GL_POLYGON_MODE, mode);
-        if (mode[0] == GL_LINE)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        else
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-}
-
-void process_input(GLFWwindow *window)
-{
-
-}
-
-class ShaderProgram
-{
-public:
-    ShaderProgram() : m_program(0) {}
-    ~ShaderProgram();
-
-    void use();
-    void load(std::string vertex_path, std::string fragment_pat);
-
-    template <typename T>
-    void set(std::string& name, T& value);
-private:
-    unsigned int m_program;
-};
-
-unsigned int create_shader(std::string& path, unsigned int shader_type)
-{
-    std::ifstream file(path);
-    if (!file.good())
-        throw std::runtime_error(fmt("Failed to read {}", path));
-
-    std::stringstream file_stream;
-    file_stream << file.rdbuf();
-    file.close();
-
-    std::string contents = file_stream.str();
-    const char* raw_contents = contents.c_str();
-
-    unsigned int shader = glCreateShader(shader_type);
-    glShaderSource(shader, 1, &raw_contents, nullptr);
-    glCompileShader(shader);
-
-    int success;
-    char info_log[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, nullptr, info_log);
-        throw std::runtime_error(fmt("Failed to create shader: {}", info_log));
-    }
-
-    return shader;
-}
-
-ShaderProgram::~ShaderProgram()
-{
-    if (m_program != 0) {
-        glDeleteProgram(m_program);
-        m_program = 0;
-    }
-}
-
-void ShaderProgram::load(std::string vertex_path, std::string fragment_path)
-{
-    unsigned int vertex_shader = create_shader(vertex_path, GL_VERTEX_SHADER);
-    unsigned int fragment_shader = create_shader(fragment_path, GL_FRAGMENT_SHADER);
-
-    m_program = glCreateProgram();
-    glAttachShader(m_program, vertex_shader);
-    glAttachShader(m_program, fragment_shader);
-    glLinkProgram(m_program);
-
-    int success;
-    char info_log[512];
-    glGetProgramiv(m_program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(m_program, 512, nullptr, info_log);
-        throw std::runtime_error(fmt("Failed to create shader program {}", info_log));
-    }
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
-}
-
-void ShaderProgram::use()
-{
-    glUseProgram(m_program);
-}
-
-template <typename T>
-void ShaderProgram::set(std::string& name, T& value)
-{
-    int location = glGetUniformLocation(m_program, name.c_str());
-
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
-        glUniform1i(location, value);
-
-    else if constexpr (std::is_same_v<T, float>)
-        glUniform1f(location, value);
-
-    else if constexpr (std::is_same_v<T, glm::vec3>)
-        glUniform3fv(location, 1, glm::value_ptr(value));
-
-    else if constexpr (std::is_same_v<T, glm::vec4>)
-        glUniform4fv(location, 1, glm::value_ptr(value));
-
-    else if constexpr (std::is_same_v<T, glm::mat4>)
-        glUniformMatrix4fv(location, 1, glm::value_ptr(value));
-
-    else
-        throw std::runtime_error("Failed to set unknown type");
-}
-
 int main()
 {
-    if (!glfwInit()) {
-        std::cout << "failed to init glfw!\n";
-        return -1;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    bool debug = true;
-    if (debug)
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-
-    int width = 900, height = 700;
-    GLFWwindow* window = glfwCreateWindow(width, height, "Mycraft", nullptr, nullptr);
-    if (!window) {
-        std::cout << "Failed to create window";
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(1);
-
-    glfwSetFramebufferSizeCallback(window, resize_callback);
-    glfwSetMouseButtonCallback(window, mouse_click_callback);
-    glfwSetKeyCallback(window, keybinding_callback);
-    glfwSetCursorPosCallback(window, mouse_move_callback);
-
-    glEnable(GL_DEPTH_TEST);
-
-    if (debug) {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(gl_debug_output, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    }
-
-    {
+    try {
+        Camera camera;
         ShaderProgram shader;
-        try {
-            shader.load("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-        } catch (std::runtime_error& error) {
-            std::cout << error.what() << "\n";
-            glfwTerminate();
-            return -1;
-        }
+        InputState state;
+        Window window;
 
-        unsigned int vao, vbo, ebo;
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
+        window.open("Mycraft", 900, 700, true);
+        window.set_callbacks(state);
 
-        float vertices[] = {
-            0.5f,  0.5f, 0.0f,  // top right
-            0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left
-        };
-        unsigned int indices[] = {
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
-        };
+        shader.load("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
 
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        while (!window.quit()) {
+            window.clear();
 
-        glGenBuffers(1, &ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+            if (state.key_presses[GLFW_KEY_W])     camera.move(Direction::front);
+            if (state.key_presses[GLFW_KEY_S])     camera.move(Direction::back);
+            if (state.key_presses[GLFW_KEY_A])     camera.move(Direction::left);
+            if (state.key_presses[GLFW_KEY_D])     camera.move(Direction::right);
+            if (state.key_presses[GLFW_KEY_UP])    camera.move(Direction::up);
+            if (state.key_presses[GLFW_KEY_DOWN])  camera.move(Direction::down);
+            if (state.key_presses[GLFW_KEY_SPACE]) window.toggle_wireframe_mode();
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
+            // TODO: rotate mouse
+            // TODO: does toggling wireframe work properly?
 
-        while (!glfwWindowShouldClose(window)) {
-            glClearColor(0.0, 0.0, 0.0, 1.0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            process_input(window);
+            glm::mat4 model = glm::mat4(1.0);
+            glm::mat4 projection =
+                glm::perspective(glm::radians(45.0f), window.aspect_ratio(), 0.1f, 100.0f);
+            glm::mat4 view = camera.view_matrix();
 
             shader.use();
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
+            shader.set<glm::mat4>("model", model);
+            shader.set<glm::mat4>("view", view);
+            shader.set<glm::mat4>("projection", projection);
 
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+            window.present();
         }
-
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glDeleteBuffers(1, &ebo);
+    } catch (std::runtime_error& error) {
+        std::cout << error.what() << "\n";
     }
 
-    glfwTerminate();
     return 0;
 }
