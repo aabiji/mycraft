@@ -28,7 +28,11 @@ FetchContent_MakeAvailable(glm)
 add_library(glad "${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/src/glad.c")
 target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include")
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+set(SOURCES
+    src/main.cpp
+    src/platform.cpp
+    src/shader.cpp
+)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 add_custom_target(

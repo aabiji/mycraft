@@ -7,12 +7,13 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "utils.h"
 
 unsigned int create_shader(const char* path, unsigned int shader_type)
 {
     std::ifstream file(path);
     if (!file.good())
-        throw std::runtime_error(fmt("Failed to read {}", path));
+        throw Error("Failed to read {}", path);
 
     std::stringstream file_stream;
     file_stream << file.rdbuf();
@@ -30,7 +31,7 @@ unsigned int create_shader(const char* path, unsigned int shader_type)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 512, nullptr, info_log);
-        throw std::runtime_error(fmt("Failed to create shader: {}", info_log));
+        throw Error("Failed to create shader: {}", info_log);
     }
 
     return shader;
@@ -61,7 +62,7 @@ void ShaderProgram::load(const char* vertex_path, const char* fragment_path)
     glGetProgramiv(m_program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(m_program, 512, nullptr, info_log);
-        throw std::runtime_error(fmt("Failed to create shader program {}", info_log));
+        throw Error("Failed to create shader program {}", info_log);
     }
 
     glDeleteShader(vertex_shader);
@@ -89,5 +90,10 @@ void ShaderProgram::set(const char* name, T& value)
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 
     else
-        throw std::runtime_error("Failed to set unknown type");
+        throw Error("Failed to set unknown type");
 }
+
+template void ShaderProgram::set<glm::mat4>(const char*, glm::mat4&);
+template void ShaderProgram::set<glm::vec3>(const char*, glm::vec3&);
+template void ShaderProgram::set<float>(const char*, float&);
+template void ShaderProgram::set<int>(const char*, int&);

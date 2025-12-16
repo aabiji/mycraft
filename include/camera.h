@@ -10,25 +10,16 @@ class Camera
 public:
     Camera() :
         m_position(0.0, 0.0, 3.0), m_front(0.0, 0.0, 0.0),
-        m_up(0.0, 1.0, 0.0), m_prev_x(-1), m_prev_y(-1),
-        m_pitch(0), m_yaw(0) {}
+        m_up(0.0, 1.0, 0.0), m_pitch(0), m_yaw(0) {}
 
-    void rotate(float mousex, float mousey)
+    void rotate(float mouse_delta_x, float mouse_delta_y)
     {
-        if (m_prev_x == -1 && m_prev_y == -1) {
-            m_prev_x = mousex;
-            m_prev_y = mousey;
-            return;
-        }
-
         float sensitivity = 0.1;
-        float x_offset = (mousex - m_prev_x) * sensitivity;
-        float y_offset = (m_prev_y - mousey) * sensitivity;
+        float x_offset = mouse_delta_x * sensitivity;
+        float y_offset = mouse_delta_y * sensitivity;
 
         m_pitch = fmin(fmax(-89, m_pitch + y_offset), 89);
         m_yaw += x_offset;
-        m_prev_x = mousex;
-        m_prev_y = mousey;
 
         glm::vec3 direction;
         direction.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
@@ -55,7 +46,9 @@ public:
         return glm::lookAt(m_position, m_position + m_front, m_up);
     }
 private:
-    float m_pitch, m_yaw;
-    float m_prev_x, m_prev_y;
-    glm::vec3 m_position, m_front, m_up;
+    float m_pitch;
+    float m_yaw;
+    glm::vec3 m_position;
+    glm::vec3 m_front;
+    glm::vec3 m_up;
 };
