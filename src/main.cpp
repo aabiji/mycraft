@@ -1,9 +1,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <glm/glm.hpp>
-
 #include "camera.h"
+#include "cube.h"
 #include "platform.h"
 #include "shader.h"
 
