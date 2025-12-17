@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <format>
 
+enum class Direction { front, back, left, right, up, down };
+
 class Error : public std::runtime_error
 {
 public:

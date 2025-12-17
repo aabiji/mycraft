@@ -1,41 +1,38 @@
 #pragma once
 
+#include <utility>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
-struct InputState
-{
-    InputState()
-        : mouse_x(0), mouse_y(0), mouse_delta_x(0),
-          mouse_delta_y(0), mouse_moved(false) {};
-
-    float mouse_x;
-    float mouse_y;
-    float mouse_delta_x;
-    float mouse_delta_y;
-    bool mouse_moved;
-    bool key_presses[255];
-};
 
 class Platform
 {
 public:
-    ~Platform();
-
     void open_window(const char* title, float w, float h, bool debug);
     void set_callbacks(bool debug);
+    static void shutdown();
 
-    void resize_window(float w, float h);
-    void toggle_wireframe_mode();
-    void clear_window();
+    void begin_frame();
     void present_window();
+    void toggle_wireframe_mode();
 
-    bool window_close();
-    float aspect_ratio();
-    InputState get_input_state();
-
-    InputState state;
+    bool window_close() const;
+    float aspect_ratio() const;
+    bool key_released(int key) const;
+    bool key_pressed(int key) const;
+    std::pair<float, float> mouse_delta() const;
 private:
+    struct InputState
+    {
+        float mouse_x = 0.0;
+        float mouse_y = 0.0;
+        float mouse_delta_x = 0.0;
+        float mouse_delta_y = 0.0;
+        bool mouse_moved = false;
+        bool key_presses[GLFW_KEY_LAST + 1] = { false };
+        bool prev_key_presses[GLFW_KEY_LAST + 1] = { false };
+    } m_state;
+
     GLFWwindow* m_window;
     float m_window_width;
     float m_window_height;

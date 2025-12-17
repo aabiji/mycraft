@@ -3,13 +3,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-enum class Direction { front, back, left, right, up, down };
+#include "utils.h"
 
 class Camera
 {
 public:
     Camera() :
-        m_position(0.0, 0.0, 3.0), m_front(0.0, 0.0, 0.0),
+        m_position(0.0, 0.0, 3.0), m_front(0.0, 0.0, -1.0),
         m_up(0.0, 1.0, 0.0), m_pitch(0), m_yaw(0) {}
 
     void rotate(float mouse_delta_x, float mouse_delta_y)
@@ -33,12 +33,14 @@ public:
         float speed = 0.05;
         glm::vec3 side = glm::normalize(glm::cross(m_front, m_up));
 
-        if (direction == Direction::front) m_position += speed * m_front;
-        if (direction == Direction::back)  m_position -= speed * m_front;
-        if (direction == Direction::right) m_position += speed * side;
-        if (direction == Direction::left)  m_position -= speed * side;
-        if (direction == Direction::up)    m_position -= speed * m_up;
-        if (direction == Direction::down)  m_position -= speed * m_up;
+        switch (direction) {
+            case Direction::front: m_position += speed * m_front; break;
+            case Direction::back:  m_position -= speed * m_front; break;
+            case Direction::right: m_position += speed * side; break;
+            case Direction::left:  m_position -= speed * side; break;
+            case Direction::up:    m_position -= speed * m_up; break;
+            case Direction::down:  m_position -= speed * m_up; break;
+        }
     }
 
     glm::mat4 view_matrix()
