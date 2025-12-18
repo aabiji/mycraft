@@ -17,6 +17,7 @@ public:
     void toggle_wireframe_mode();
 
     bool window_close() const;
+    void release_mouse() const;
     float aspect_ratio() const;
     bool key_released(int key) const;
     bool key_pressed(int key) const;

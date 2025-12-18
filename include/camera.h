@@ -14,7 +14,7 @@ public:
 
     void rotate(float mouse_delta_x, float mouse_delta_y)
     {
-        float sensitivity = 0.1;
+        float sensitivity = 0.35;
         float x_offset = mouse_delta_x * sensitivity;
         float y_offset = mouse_delta_y * sensitivity;
 
@@ -30,7 +30,7 @@ public:
 
     void move(Direction direction)
     {
-        float speed = 0.05;
+        float speed = 0.2;
         glm::vec3 side = glm::normalize(glm::cross(m_front, m_up));
 
         switch (direction) {
@@ -38,7 +38,7 @@ public:
             case Direction::back:  m_position -= speed * m_front; break;
             case Direction::right: m_position += speed * side; break;
             case Direction::left:  m_position -= speed * side; break;
-            case Direction::up:    m_position -= speed * m_up; break;
+            case Direction::up:    m_position += speed * m_up; break;
             case Direction::down:  m_position -= speed * m_up; break;
         }
     }

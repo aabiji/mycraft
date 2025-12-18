@@ -40,9 +40,9 @@ void gl_debug_output(GLenum source, GLenum type, unsigned int id, GLenum severit
         case GL_DEBUG_SEVERITY_NOTIFICATION: severity_msg = "notification"; break;
     }
 
-    std::cout << "DEBUG: Type: "   << source_name
-              << " | Error type: " << error_type
-              << " | Severity: " << severity_msg << "\n";
+    std::cout
+        << source_name << " " << error_type  << " | "
+        << severity_msg << " severity | " << message << "\n";
 }
 
 void Platform::open_window(const char* title, float width, float height, bool debug)
@@ -64,6 +64,7 @@ void Platform::open_window(const char* title, float width, float height, bool de
         throw std::runtime_error("Failed to create window");
     }
 
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwMakeContextCurrent(m_window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
@@ -110,6 +111,11 @@ void Platform::set_callbacks(bool debug)
 
 void Platform::shutdown() { glfwTerminate(); }
 
+void Platform::release_mouse() const
+{
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
 bool Platform::window_close() const { return glfwWindowShouldClose(m_window); }
 
 float Platform::aspect_ratio() const { return m_window_width / m_window_height; }
@@ -128,11 +134,8 @@ std::pair<float, float> Platform::mouse_delta() const
 
 void Platform::begin_frame()
 {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.61, 0.85, 0.95, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    m_state.mouse_delta_x = 0;
-    m_state.mouse_delta_y = 0;
 
     // poll keyboard input
     std::copy(
@@ -145,6 +148,9 @@ void Platform::begin_frame()
 
 void Platform::present_window()
 {
+    m_state.mouse_delta_x = 0;
+    m_state.mouse_delta_y = 0;
+
     glfwPollEvents();
     glfwSwapBuffers(m_window);
 }
