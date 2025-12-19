@@ -4,7 +4,7 @@ layout (location = 0) in vec3 in_pos;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_texture_coord;
 
-out vec3 texture_coord;
+flat out vec3 texture_coord;
 
 uniform mat4 model;
 uniform mat4 view;

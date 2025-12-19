@@ -69,6 +69,11 @@ void ShaderProgram::load(const char* vertex_path, const char* fragment_path)
     glDeleteShader(fragment_shader);
 }
 
+int ShaderProgram::uniform_location(const char* name)
+{
+    return glGetUniformLocation(m_program, name);
+}
+
 template <typename T>
 void ShaderProgram::set(const char* name, T& value)
 {

@@ -8,6 +8,7 @@ public:
 
     void use();
     void load(const char* vertex_path, const char* fragment_pat);
+    int uniform_location(const char* name);
 
     template <typename T>
     void set(const char* name, T& value);

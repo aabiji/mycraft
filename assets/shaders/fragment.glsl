@@ -1,13 +1,12 @@
 #version 460 core
 
-in vec3 texture_coord;
+flat in vec3 texture_coord;
 
 out vec4 fragment_color;
 
-//uniform sampler3D block_spritesheet;
+uniform sampler2DArray texture_atlas;
 
 void main()
 {
-    fragment_color = vec4(1.0, 1.0, 0.0, 1.0);
-    //fragment_color = texture(block_spritesheet, texture_coord);
+    fragment_color = texture(texture_atlas, texture_coord);
 }

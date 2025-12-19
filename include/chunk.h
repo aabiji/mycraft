@@ -9,7 +9,7 @@ enum class BlockType { dirt, empty };
 class Chunk
 {
 public:
-    Chunk(int width, int height, int depth);
+    Chunk(glm::vec3 position, glm::ivec3 size);
     ~Chunk();
 
     void draw();
@@ -26,6 +26,7 @@ private:
 
     int m_num_indices;
     glm::ivec3 m_size;
+    glm::vec3 m_position;
     unsigned int m_vao, m_vbo, m_ebo;
     std::vector<BlockType> m_blocks;
 };

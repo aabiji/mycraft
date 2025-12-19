@@ -2,10 +2,11 @@
 
 #include "chunk.h"
 
-Chunk::Chunk(int width, int height, int depth)
+Chunk::Chunk(glm::vec3 position, glm::ivec3 size)
 {
+    m_size = size;
+    m_position = position;
     m_num_indices = 0;
-    m_size = glm::ivec3(width, height, depth);
     m_blocks.reserve(m_size.x * m_size.y * m_size.z);
 
     generate_terrain();
@@ -88,7 +89,7 @@ void Chunk::add_block_vertices(
 
             for (int j = 0; j < 4; j++) {
                 Vertex v = block_vertices[i * 4 + j];
-                v.position += glm::vec3(x, y, z);
+                v.position += m_position + glm::vec3(x, y, z);
                 vertices.push_back(v);
             }
 

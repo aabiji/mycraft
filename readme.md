@@ -1,9 +1,8 @@
 simple minecraft clone
 
-[ ] setup the zig build for the project (glfw + glad)
-[ ] setup vertex and fragment shaders for game
-[ ] render cube
-[ ] render chunks: render only visible faces in chunks
+[x] setup vertex and fragment shaders for game
+[x] render cube
+[x] render chunks: render only visible faces in chunks
 [ ] player movement
 [ ] procedural terrain generation using perlin noise
 [ ] render only visible chunks

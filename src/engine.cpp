@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "engine.h"
+#include "texture.h"
 
 Engine::Engine()
 {
@@ -11,7 +12,11 @@ Engine::Engine()
 
 void Engine::run()
 {
-    Chunk chunk(10, 10, 10);
+    Chunk chunk(glm::vec3(0, 0, 0), glm::ivec3(10, 10, 10));
+
+    TextureAtlas texture;
+    texture.create("assets/images/atlas.png", 64, 3, 0);
+    int texture_location = m_shader.uniform_location("texture_atlas");
 
     while (!m_platform.window_close()) {
         m_platform.begin_frame();
@@ -42,6 +47,7 @@ void Engine::run()
         m_shader.set<glm::mat4>("model", model);
         m_shader.set<glm::mat4>("view", view);
         m_shader.set<glm::mat4>("projection", projection);
+        texture.use(texture_location);;
         chunk.draw();
 
         m_platform.present_window();

@@ -34,6 +34,7 @@ set(SOURCES
     src/main.cpp
     src/platform.cpp
     src/shader.cpp
+    src/texture.cpp
 )
 add_executable(${PROJECT_NAME} ${SOURCES})
 
