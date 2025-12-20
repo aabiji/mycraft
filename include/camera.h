@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -42,6 +43,8 @@ public:
             case Direction::down:  m_position -= speed * m_up; break;
         }
     }
+
+    std::pair<glm::vec3, glm::vec3> ray() { return { m_position, m_front }; }
 
     glm::mat4 view_matrix()
     {

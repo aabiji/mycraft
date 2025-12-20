@@ -2,6 +2,8 @@
 #include "engine.h"
 #include "texture.h"
 
+#include <iostream>
+
 Engine::Engine()
 {
     m_platform.open_window("Mycraft", 900, 700, true);
@@ -24,7 +26,7 @@ void Engine::run()
     int id_location = m_main_shader.uniform_location("id_buffer");
 
     while (!m_platform.window_close()) {
-        m_platform.begin_frame();
+        m_platform.poll_input();
 
         if (m_platform.key_pressed(GLFW_KEY_W))       m_camera.move(Direction::front);
         if (m_platform.key_pressed(GLFW_KEY_S))       m_camera.move(Direction::back);
@@ -35,7 +37,7 @@ void Engine::run()
         if (m_platform.key_released(GLFW_KEY_SPACE))  m_platform.toggle_wireframe_mode();
         if (m_platform.key_released(GLFW_KEY_CAPS_LOCK)) {
             m_mouse_enabled = false;
-            m_platform.release_mouse();
+            m_platform.disable_mouse_input();
         }
 
         if (m_mouse_enabled) {
@@ -43,13 +45,23 @@ void Engine::run()
             m_camera.rotate(dx, dy);
         }
 
+        auto [x, y] = m_platform.center_position();
+        glm::uvec4 selected_id = m_id_buffer.sample(x, y);
+
+        auto [position, direction] = m_camera.ray();
+        auto result = chunk.raycast(position, direction, 10);
+
+        if (result.did_hit) {
+            if (m_platform.mouse_released(GLFW_MOUSE_BUTTON_LEFT))
+                chunk.place_block(BlockType::dirt, result.position, result.face_normal);
+            if (m_platform.mouse_released(GLFW_MOUSE_BUTTON_RIGHT))
+                chunk.place_block(BlockType::empty, result.position, result.face_normal);
+        }
+
         glm::mat4 model = glm::mat4(1.0);
         glm::mat4 projection =
             glm::perspective(glm::radians(45.0f), m_platform.aspect_ratio(), 0.1f, 100.0f);
         glm::mat4 view = m_camera.view_matrix();
-
-        auto [x, y] = m_platform.center_position();
-        glm::uvec4 selected_id = m_id_buffer.sample(x, y);
 
         m_id_buffer.enable();
         m_id_buffer_shader.use();

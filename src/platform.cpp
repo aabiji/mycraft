@@ -111,7 +111,7 @@ void Platform::set_callbacks(bool debug)
 
 void Platform::shutdown() { glfwTerminate(); }
 
-void Platform::release_mouse() const
+void Platform::disable_mouse_input() const
 {
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
@@ -125,6 +125,11 @@ bool Platform::key_pressed(int key) const { return m_state.key_presses[key]; }
 bool Platform::key_released(int key) const
 {
     return !m_state.key_presses[key] && m_state.prev_key_presses[key];
+}
+
+bool Platform::mouse_released(int btn) const
+{
+    return !m_state.mouse_presses[btn] && m_state.prev_mouse_presses[btn];
 }
 
 std::pair<float, float> Platform::mouse_delta() const
@@ -144,15 +149,21 @@ void Platform::clear_frame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Platform::begin_frame()
+void Platform::poll_input()
 {
-    // poll keyboard input
     std::copy(
         std::begin(m_state.key_presses),
         std::end(m_state.key_presses),
         std::begin(m_state.prev_key_presses));
     for (int key = 0; key < GLFW_KEY_LAST; key++)
         m_state.key_presses[key] = glfwGetKey(m_window, key) == GLFW_PRESS;
+
+    std::copy(
+        std::begin(m_state.mouse_presses),
+        std::end(m_state.mouse_presses),
+        std::begin(m_state.prev_mouse_presses));
+    for (int btn = 0; btn < GLFW_MOUSE_BUTTON_LAST; btn++)
+        m_state.mouse_presses[btn] = glfwGetMouseButton(m_window, btn) == GLFW_PRESS;
 }
 
 void Platform::present_frame()

@@ -12,16 +12,19 @@ public:
     void set_callbacks(bool debug);
     static void shutdown();
 
-    void begin_frame();
     void clear_frame();
     void present_frame();
+
+    void poll_input();
+    void disable_mouse_input() const;
     void toggle_wireframe_mode();
+
+    bool key_released(int key) const;
+    bool key_pressed(int key) const;
+    bool mouse_released(int btn) const;
 
     bool window_close() const;
     float aspect_ratio() const;
-    void release_mouse() const;
-    bool key_released(int key) const;
-    bool key_pressed(int key) const;
     std::pair<float, float> mouse_delta() const;
     std::pair<float, float> center_position() const;
 private:
@@ -32,6 +35,10 @@ private:
         float mouse_delta_x = 0.0;
         float mouse_delta_y = 0.0;
         bool mouse_moved = false;
+
+        bool mouse_presses[GLFW_MOUSE_BUTTON_LAST + 1] = { false };
+        bool prev_mouse_presses[GLFW_MOUSE_BUTTON_LAST + 1] = { false };
+
         bool key_presses[GLFW_KEY_LAST + 1] = { false };
         bool prev_key_presses[GLFW_KEY_LAST + 1] = { false };
     } m_state;
