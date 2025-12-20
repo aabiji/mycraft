@@ -5,7 +5,7 @@ layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_texture_coord;
 layout (location = 3) in uint in_id;
 
-out vec3 texture_coord;
+flat out uint object_id;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -14,5 +14,5 @@ uniform mat4 projection;
 void main()
 {
     gl_Position = projection * view * model * vec4(in_pos, 1.0);
-    texture_coord = in_texture_coord;
+    object_id = in_id;
 }

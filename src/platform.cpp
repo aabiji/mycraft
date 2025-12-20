@@ -132,11 +132,20 @@ std::pair<float, float> Platform::mouse_delta() const
     return { m_state.mouse_delta_x, m_state.mouse_delta_y };
 }
 
-void Platform::begin_frame()
+std::pair<float, float> Platform::center_position() const
+{
+    // flip the y position since opengl defines (0, 0) at the bottom left
+    return { m_window_width / 2, m_window_height - m_window_height / 2 };
+}
+
+void Platform::clear_frame()
 {
     glClearColor(0.61, 0.85, 0.95, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
+void Platform::begin_frame()
+{
     // poll keyboard input
     std::copy(
         std::begin(m_state.key_presses),
@@ -146,7 +155,7 @@ void Platform::begin_frame()
         m_state.key_presses[key] = glfwGetKey(m_window, key) == GLFW_PRESS;
 }
 
-void Platform::present_window()
+void Platform::present_frame()
 {
     m_state.mouse_delta_x = 0;
     m_state.mouse_delta_y = 0;

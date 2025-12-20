@@ -18,7 +18,7 @@ private:
     void add_block_vertices(
         std::vector<Vertex>& vertices,
         std::vector<unsigned int>& indices,
-        int x, int y, int z);
+        int x, int y, int z, int id);
     void construct_mesh();
 
     void generate_terrain();

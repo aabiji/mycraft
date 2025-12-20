@@ -13,15 +13,17 @@ public:
     static void shutdown();
 
     void begin_frame();
-    void present_window();
+    void clear_frame();
+    void present_frame();
     void toggle_wireframe_mode();
 
     bool window_close() const;
-    void release_mouse() const;
     float aspect_ratio() const;
+    void release_mouse() const;
     bool key_released(int key) const;
     bool key_pressed(int key) const;
     std::pair<float, float> mouse_delta() const;
+    std::pair<float, float> center_position() const;
 private:
     struct InputState
     {
