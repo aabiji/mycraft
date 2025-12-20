@@ -9,7 +9,7 @@ class Camera
 {
 public:
     Camera() :
-        m_position(0.0, 0.0, 3.0), m_front(0.0, 0.0, -1.0),
+        m_position(0.0, 0.0, 10.0), m_front(0.0, 0.0, -1.0),
         m_up(0.0, 1.0, 0.0), m_pitch(0), m_yaw(0) {}
 
     void rotate(float mouse_delta_x, float mouse_delta_y)

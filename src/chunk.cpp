@@ -86,10 +86,14 @@ void Chunk::add_block_vertices(
         // face culling: only render visible block faces
         if (!block_present(pos.x, pos.y, pos.z)) {
             int base_index = vertices.size();
+            int vertices_per_face = 4;
 
-            for (int j = 0; j < 4; j++) {
-                Vertex v = block_vertices[i * 4 + j];
+            for (int j = 0; j < vertices_per_face; j++) {
+                Vertex v = block_vertices[i * vertices_per_face + j];
                 v.position += m_position + glm::vec3(x, y, z);
+                // Only set the grass side texture for blocks at the surface of the chunk
+                if (y != m_size.y - 1)
+                    v.texture_coord.z = 1; // dirt texture index
                 vertices.push_back(v);
             }
 

@@ -11,4 +11,6 @@ public:
     template <typename...T>
     explicit Error(std::format_string<T...> fmt_str, T&&... args)
         : std::runtime_error(std::format(fmt_str, std::forward<T>(args)...)) {}
+
+    explicit Error(std::string msg) : std::runtime_error(msg) {}
 };

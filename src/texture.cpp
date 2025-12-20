@@ -16,9 +16,11 @@ void TextureAtlas::use(int sampler_location)
     glUniform1i(sampler_location, m_sampler);
 }
 
+#include <iostream>
 void TextureAtlas::create(const char* path, int sprite_size, int num_sprites, int sampler)
 {
     int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char* pixels =
         stbi_load(path, &width, &height, &channels, 4);
     bool in_range =
@@ -35,9 +37,7 @@ void TextureAtlas::create(const char* path, int sprite_size, int num_sprites, in
     m_sampler = sampler;
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_id);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8,
-        sprite_size, sprite_size, num_sprites, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, sprite_size, sprite_size, num_sprites);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -57,8 +57,8 @@ void TextureAtlas::create(const char* path, int sprite_size, int num_sprites, in
             std::copy(pixels + start, pixels + end, cropped + destination);
         }
 
-        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0,
-            0, 0, layer, sprite_size, sprite_size, 1,
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0,
+            layer, sprite_size, sprite_size, 1,
             GL_RGBA, GL_UNSIGNED_BYTE, cropped);
         delete[] cropped;
 
