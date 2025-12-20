@@ -1,7 +1,7 @@
 #version 460 core
 
-flat in uint object_id;
-out uint output_value;
+flat in uvec4 object_id;
+layout (location = 0) out uvec4 output_value;
 
 void main()
 {

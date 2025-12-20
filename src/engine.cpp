@@ -49,7 +49,7 @@ void Engine::run()
         glm::mat4 view = m_camera.view_matrix();
 
         auto [x, y] = m_platform.center_position();
-        unsigned int selected_id = m_id_buffer.sample(x, y);
+        glm::uvec4 selected_id = m_id_buffer.sample(x, y);
 
         m_id_buffer.enable();
         m_id_buffer_shader.use();
@@ -63,7 +63,7 @@ void Engine::run()
         m_main_shader.set<glm::mat4>("model", model);
         m_main_shader.set<glm::mat4>("view", view);
         m_main_shader.set<glm::mat4>("projection", projection);
-        m_main_shader.set<unsigned int>("current_object_id", selected_id);
+        m_main_shader.set<glm::uvec4>("current_object_id", selected_id);
         m_platform.clear_frame();
         m_id_buffer.use_texture(id_location);
         texture.use(atlas_location);

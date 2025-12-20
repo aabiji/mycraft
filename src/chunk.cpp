@@ -1,12 +1,14 @@
 #include <glad/glad.h>
 
 #include "chunk.h"
+#include "utils.h"
 
 Chunk::Chunk(glm::vec3 position, glm::ivec3 size)
 {
     m_size = size;
     m_position = position;
     m_num_indices = 0;
+    m_id = generate_uuidv4();
     m_blocks.reserve(m_size.x * m_size.y * m_size.z);
 
     generate_terrain();
@@ -65,16 +67,15 @@ void Chunk::setup_buffers()
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
         sizeof(Vertex), (const void*)offsetof(Vertex, texture_coord));
     glEnableVertexAttribArray(2);
-    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT,
+    glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT,
         sizeof(Vertex), (const void*)offsetof(Vertex, id));
     glEnableVertexAttribArray(3);
 }
 
-#include <iostream>
 void Chunk::add_block_vertices(
     std::vector<Vertex>& vertices,
     std::vector<unsigned int>& indices,
-    int x, int y, int z, int id)
+    int x, int y, int z, int count)
 {
     // NOTE: must match order in block_vertices (block.h)
     glm::ivec3 directions[] = {
@@ -95,7 +96,7 @@ void Chunk::add_block_vertices(
             for (int j = 0; j < vertices_per_face; j++) {
                 Vertex v = block_vertices[i * vertices_per_face + j];
                 v.position += m_position + glm::vec3(x, y, z);
-                v.id = id;
+                v.id = m_id + glm::uvec4(0, 0, 0, count);
                 // Only set the grass side texture for blocks at the surface of the chunk
                 if (y != m_size.y - 1) v.texture_coord.z = 1; // dirt texture index
                 vertices.push_back(v);
@@ -112,13 +113,14 @@ void Chunk::construct_mesh()
     // create the mesh
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    int id = 1; // the background is 0
+    int count = 0;
 
     for (int x = 0; x < m_size.x; x++) {
         for (int y = 0; y < m_size.y; y++) {
             for (int z = 0; z < m_size.z; z++) {
-                if (!block_present(x, y, z)) continue;
-                add_block_vertices(vertices, indices, x, y, z, ++id);
+                count++;
+                if (block_present(x, y, z))
+                    add_block_vertices(vertices, indices, x, y, z, count);
             }
         }
     }

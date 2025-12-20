@@ -18,12 +18,13 @@ private:
     void add_block_vertices(
         std::vector<Vertex>& vertices,
         std::vector<unsigned int>& indices,
-        int x, int y, int z, int id);
+        int x, int y, int z, int count);
     void construct_mesh();
 
     void generate_terrain();
     bool block_present(int x, int y, int z);
 
+    glm::uvec4 m_id;
     int m_num_indices;
     glm::ivec3 m_size;
     glm::vec3 m_position;

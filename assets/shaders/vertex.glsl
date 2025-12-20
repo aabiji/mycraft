@@ -3,7 +3,7 @@
 layout (location = 0) in vec3 in_pos;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_texture_coord;
-layout (location = 3) in uint in_id;
+layout (location = 3) in uvec4 in_id;
 
 out vec3 texture_coord;
 

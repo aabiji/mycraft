@@ -82,9 +82,6 @@ void ShaderProgram::set(const char* name, T& value)
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
         glUniform1i(location, value);
 
-    else if constexpr (std::is_same_v<T, unsigned int>)
-        glUniform1ui(location, value);
-
     else if constexpr (std::is_same_v<T, float>)
         glUniform1f(location, value);
 
@@ -93,6 +90,9 @@ void ShaderProgram::set(const char* name, T& value)
 
     else if constexpr (std::is_same_v<T, glm::vec4>)
         glUniform4fv(location, 1, glm::value_ptr(value));
+
+    else if constexpr (std::is_same_v<T, glm::uvec4>)
+        glUniform4uiv(location, 1, glm::value_ptr(value));
 
     else if constexpr (std::is_same_v<T, glm::mat4>)
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
@@ -103,6 +103,6 @@ void ShaderProgram::set(const char* name, T& value)
 
 template void ShaderProgram::set<glm::mat4>(const char*, glm::mat4&);
 template void ShaderProgram::set<glm::vec3>(const char*, glm::vec3&);
+template void ShaderProgram::set<glm::uvec4>(const char*, glm::uvec4&);
 template void ShaderProgram::set<float>(const char*, float&);
-template void ShaderProgram::set<unsigned int>(const char*, unsigned int&);
 template void ShaderProgram::set<int>(const char*, int&);

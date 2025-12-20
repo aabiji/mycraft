@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 // Stores rendered object ids to a framebuffer for post processing edge detection
 class IDBuffer
 {
@@ -13,7 +15,7 @@ public:
     void create(int width, int height, int texture_index);
 
     void use_texture(int texture_location);
-    unsigned int sample(int x, int y);
+    glm::uvec4 sample(int x, int y);
 private:
     unsigned int m_framebuffer;
     unsigned int m_depth_buffer;
