@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "engine.h"
+#include "error.h"
 
 int main()
 {

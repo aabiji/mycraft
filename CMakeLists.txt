@@ -31,7 +31,6 @@ target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/inc
 set(SOURCES
     src/chunk.cpp
     src/engine.cpp
-    src/idbuffer.cpp
     src/main.cpp
     src/platform.cpp
     src/shader.cpp

@@ -6,8 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "error.h"
 #include "shader.h"
-#include "utils.h"
 
 unsigned int create_shader(const char* path, unsigned int shader_type)
 {
@@ -88,11 +88,11 @@ void ShaderProgram::set(const char* name, T& value)
     else if constexpr (std::is_same_v<T, glm::vec3>)
         glUniform3fv(location, 1, glm::value_ptr(value));
 
+    else if constexpr (std::is_same_v<T, glm::ivec3>)
+        glUniform3iv(location, 1, glm::value_ptr(value));
+
     else if constexpr (std::is_same_v<T, glm::vec4>)
         glUniform4fv(location, 1, glm::value_ptr(value));
-
-    else if constexpr (std::is_same_v<T, glm::uvec4>)
-        glUniform4uiv(location, 1, glm::value_ptr(value));
 
     else if constexpr (std::is_same_v<T, glm::mat4>)
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
@@ -103,6 +103,6 @@ void ShaderProgram::set(const char* name, T& value)
 
 template void ShaderProgram::set<glm::mat4>(const char*, glm::mat4&);
 template void ShaderProgram::set<glm::vec3>(const char*, glm::vec3&);
-template void ShaderProgram::set<glm::uvec4>(const char*, glm::uvec4&);
+template void ShaderProgram::set<glm::ivec3>(const char*, glm::ivec3&);
 template void ShaderProgram::set<float>(const char*, float&);
 template void ShaderProgram::set<int>(const char*, int&);

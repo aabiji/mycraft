@@ -2,17 +2,11 @@
 #include "engine.h"
 #include "texture.h"
 
-#include <iostream>
-
 Engine::Engine()
 {
     m_platform.open_window("Mycraft", 900, 700, true);
     m_platform.set_callbacks(true);
-
-    m_main_shader.load("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-    m_id_buffer_shader.load("assets/shaders/id_vertex.glsl", "assets/shaders/id_fragment.glsl");
-
-    m_id_buffer.create(900, 700, 0); // TODO: handle resize
+    m_shader.load("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     m_mouse_enabled = true;
 }
 
@@ -22,8 +16,7 @@ void Engine::run()
 
     TextureAtlas texture;
     texture.create("assets/images/atlas.png", 64, 3, 1);
-    int atlas_location = m_main_shader.uniform_location("texture_atlas");
-    int id_location = m_main_shader.uniform_location("id_buffer");
+    int atlas_location = m_shader.uniform_location("texture_atlas");
 
     while (!m_platform.window_close()) {
         m_platform.poll_input();
@@ -45,11 +38,8 @@ void Engine::run()
             m_camera.rotate(dx, dy);
         }
 
-        auto [x, y] = m_platform.center_position();
-        glm::uvec4 selected_id = m_id_buffer.sample(x, y);
-
         auto [position, direction] = m_camera.ray();
-        auto result = chunk.raycast(position, direction, 10);
+        auto result = chunk.raycast(position, direction, 25);
 
         if (result.did_hit) {
             if (m_platform.mouse_released(GLFW_MOUSE_BUTTON_LEFT))
@@ -63,23 +53,15 @@ void Engine::run()
             glm::perspective(glm::radians(45.0f), m_platform.aspect_ratio(), 0.1f, 100.0f);
         glm::mat4 view = m_camera.view_matrix();
 
-        m_id_buffer.enable();
-        m_id_buffer_shader.use();
-        m_id_buffer_shader.set<glm::mat4>("model", model);
-        m_id_buffer_shader.set<glm::mat4>("view", view);
-        m_id_buffer_shader.set<glm::mat4>("projection", projection);
-        chunk.draw();
-        m_id_buffer.disable();
-
-        m_main_shader.use();
-        m_main_shader.set<glm::mat4>("model", model);
-        m_main_shader.set<glm::mat4>("view", view);
-        m_main_shader.set<glm::mat4>("projection", projection);
-        m_main_shader.set<glm::uvec4>("current_object_id", selected_id);
+        m_shader.use();
+        m_shader.set<glm::mat4>("model", model);
+        m_shader.set<glm::mat4>("view", view);
+        m_shader.set<glm::mat4>("projection", projection);
+        if (result.did_hit)
+            m_shader.set<glm::ivec3>("selected_position", result.position);
         m_platform.clear_frame();
-        m_id_buffer.use_texture(id_location);
         texture.use(atlas_location);
-        chunk.draw();
+        chunk.render();
 
         m_platform.present_frame();
     }

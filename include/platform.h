@@ -26,7 +26,6 @@ public:
     bool window_close() const;
     float aspect_ratio() const;
     std::pair<float, float> mouse_delta() const;
-    std::pair<float, float> center_position() const;
 private:
     struct InputState
     {

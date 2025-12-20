@@ -4,8 +4,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "error.h"
 #include "texture.h"
-#include "utils.h"
 
 TextureAtlas::~TextureAtlas() { glDeleteTextures(1, &m_id); }
 

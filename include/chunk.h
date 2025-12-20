@@ -19,7 +19,7 @@ public:
     Chunk(glm::vec3 position, glm::ivec3 size);
     ~Chunk();
 
-    void draw();
+    void render();
     void place_block(BlockType block, glm::ivec3 position, glm::ivec3 direction);
     RaycastHit raycast(glm::vec3 origin, glm::vec3 direction, float max_steps);
 private:
@@ -33,7 +33,6 @@ private:
     void generate_terrain();
     bool block_present(glm::ivec3 position);
 
-    glm::uvec4 m_id;
     int m_num_indices;
     glm::ivec3 m_size;
     glm::vec3 m_position;

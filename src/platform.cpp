@@ -137,12 +137,6 @@ std::pair<float, float> Platform::mouse_delta() const
     return { m_state.mouse_delta_x, m_state.mouse_delta_y };
 }
 
-std::pair<float, float> Platform::center_position() const
-{
-    // flip the y position since opengl defines (0, 0) at the bottom left
-    return { m_window_width / 2, m_window_height - m_window_height / 2 };
-}
-
 void Platform::clear_frame()
 {
     glClearColor(0.61, 0.85, 0.95, 1.0);

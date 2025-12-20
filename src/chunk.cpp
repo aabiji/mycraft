@@ -1,14 +1,12 @@
 #include <glad/glad.h>
 
 #include "chunk.h"
-#include "utils.h"
 
 Chunk::Chunk(glm::vec3 position, glm::ivec3 size)
 {
     m_size = size;
     m_position = position;
     m_num_indices = 0;
-    m_id = generate_uuidv4();
     m_blocks.reserve(m_size.x * m_size.y * m_size.z);
 
     generate_terrain();
@@ -45,8 +43,8 @@ void Chunk::setup_buffers()
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
         sizeof(Vertex), (const void*)offsetof(Vertex, texture_coord));
     glEnableVertexAttribArray(2);
-    glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT,
-        sizeof(Vertex), (const void*)offsetof(Vertex, id));
+    glVertexAttribIPointer(3, 3, GL_UNSIGNED_INT,
+        sizeof(Vertex), (const void*)offsetof(Vertex, voxel_position));
     glEnableVertexAttribArray(3);
 }
 
@@ -71,13 +69,16 @@ void Chunk::add_block_vertices(
         if (!block_present(pos)) {
             int base_index = vertices.size();
             int vertices_per_face = 4;
+            glm::vec3 voxel_position = m_position + glm::vec3(x, y, z);
 
             for (int j = 0; j < vertices_per_face; j++) {
                 Vertex v = block_vertices[i * vertices_per_face + j];
-                v.position += m_position + glm::vec3(x, y, z);
-                v.id = m_id + glm::uvec4(0, 0, 0, index);
+                v.position += voxel_position;
+                v.voxel_position = voxel_position;
+
                 // Only set the grass side texture for blocks at the surface of the chunk
                 if (y != m_size.y - 1) v.texture_coord.z = 1; // dirt texture index
+
                 vertices.push_back(v);
             }
 
@@ -115,7 +116,7 @@ void Chunk::construct_mesh()
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_size, indices.data());
 }
 
-void Chunk::draw()
+void Chunk::render()
 {
     glBindVertexArray(m_vao);
     glDrawElements(GL_TRIANGLES, m_num_indices, GL_UNSIGNED_INT, 0);
