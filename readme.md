@@ -3,9 +3,9 @@ simple minecraft clone
 [x] setup vertex and fragment shaders for game
 [x] render cube
 [x] render chunks: render only visible faces in chunks
-[ ] player movement
+[ ] player movement with physics
 [ ] procedural terrain generation using perlin noise
-[ ] render only visible chunks
+[x] render only visible chunks
 [ ] block picking
 [ ] break blocks
 [ ] place blocks

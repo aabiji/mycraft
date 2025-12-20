@@ -82,6 +82,9 @@ void ShaderProgram::set(const char* name, T& value)
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
         glUniform1i(location, value);
 
+    else if constexpr (std::is_same_v<T, unsigned int>)
+        glUniform1ui(location, value);
+
     else if constexpr (std::is_same_v<T, float>)
         glUniform1f(location, value);
 
@@ -101,4 +104,5 @@ void ShaderProgram::set(const char* name, T& value)
 template void ShaderProgram::set<glm::mat4>(const char*, glm::mat4&);
 template void ShaderProgram::set<glm::vec3>(const char*, glm::vec3&);
 template void ShaderProgram::set<float>(const char*, float&);
+template void ShaderProgram::set<unsigned int>(const char*, unsigned int&);
 template void ShaderProgram::set<int>(const char*, int&);

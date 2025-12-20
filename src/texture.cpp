@@ -9,15 +9,15 @@
 
 TextureAtlas::~TextureAtlas() { glDeleteTextures(1, &m_id); }
 
-void TextureAtlas::use(int sampler_location)
+void TextureAtlas::use(int texture_location)
 {
-    glActiveTexture(GL_TEXTURE0 + m_sampler);
+    glActiveTexture(GL_TEXTURE0 + m_texture_index);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_id);
-    glUniform1i(sampler_location, m_sampler);
+    glUniform1i(texture_location, m_texture_index);
 }
 
-#include <iostream>
-void TextureAtlas::create(const char* path, int sprite_size, int num_sprites, int sampler)
+void TextureAtlas::create(
+    const char* path, int sprite_size, int num_sprites, int texture_index)
 {
     int width, height, channels;
     stbi_set_flip_vertically_on_load(true);
@@ -34,7 +34,7 @@ void TextureAtlas::create(const char* path, int sprite_size, int num_sprites, in
     }
 
     // create the texture array
-    m_sampler = sampler;
+    m_texture_index = texture_index;
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_id);
     glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, sprite_size, sprite_size, num_sprites);
