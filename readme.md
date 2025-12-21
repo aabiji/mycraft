@@ -6,9 +6,9 @@ simple minecraft clone
 [ ] player movement with physics
 [ ] procedural terrain generation using perlin noise
 [x] render only visible chunks
-[ ] block picking
-[ ] break blocks
-[ ] place blocks
+[x] block picking
+[x] break blocks
+[x] place blocks
 [ ] crosshair
 [ ] different block types (flowers, stairs, glass, rock, sand, water, etc)
 [ ] glass transparency

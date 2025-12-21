@@ -69,6 +69,7 @@ void Platform::open_window(const char* title, float width, float height, bool de
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
     glEnable(GL_DEPTH_TEST);
+    set_callbacks(debug);
 }
 
 void Platform::set_callbacks(bool debug)
@@ -95,8 +96,9 @@ void Platform::set_callbacks(bool debug)
         [](GLFWwindow* window, double xpos, double ypos)
         {
             Platform* platform = static_cast<Platform*>(glfwGetWindowUserPointer(window));
+            bool mouse_captured = glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 
-            if (platform->m_state.mouse_moved) {
+            if (platform->m_state.mouse_moved && mouse_captured) {
                 platform->m_state.mouse_delta_x = xpos - platform->m_state.mouse_x;
                 // since opengl defines (0, 0) to be the bottom left corner
                 platform->m_state.mouse_delta_y = platform->m_state.mouse_y - ypos;
@@ -111,25 +113,35 @@ void Platform::set_callbacks(bool debug)
 
 void Platform::shutdown() { glfwTerminate(); }
 
-void Platform::disable_mouse_input() const
+void Platform::set_mouse_mode(bool captured) const
 {
-    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(m_window, GLFW_CURSOR,
+        captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-bool Platform::window_close() const { return glfwWindowShouldClose(m_window); }
+void Platform::toggle_wireframe_mode()
+{
+    int mode[2];
+    glGetIntegerv(GL_POLYGON_MODE, mode);
+    glPolygonMode(GL_FRONT_AND_BACK, mode[0] == GL_LINE ? GL_FILL : GL_LINE);
+}
+
+bool Platform::should_close() const { return glfwWindowShouldClose(m_window); }
 
 float Platform::aspect_ratio() const { return m_window_width / m_window_height; }
 
-bool Platform::key_pressed(int key) const { return m_state.key_presses[key]; }
-
-bool Platform::key_released(int key) const
+bool Platform::input_pressed(int code, bool is_mouse) const
 {
-    return !m_state.key_presses[key] && m_state.prev_key_presses[key];
+    if (is_mouse)
+        return m_state.mouse_presses[code];
+    return m_state.key_presses[code];
 }
 
-bool Platform::mouse_released(int btn) const
+bool Platform::input_released(int code, bool is_mouse) const
 {
-    return !m_state.mouse_presses[btn] && m_state.prev_mouse_presses[btn];
+    if (is_mouse)
+        return !m_state.mouse_presses[code] && m_state.prev_mouse_presses[code];
+    return !m_state.key_presses[code] && m_state.prev_key_presses[code];
 }
 
 std::pair<float, float> Platform::mouse_delta() const
@@ -137,14 +149,12 @@ std::pair<float, float> Platform::mouse_delta() const
     return { m_state.mouse_delta_x, m_state.mouse_delta_y };
 }
 
-void Platform::clear_frame()
+void Platform::start_frame()
 {
     glClearColor(0.61, 0.85, 0.95, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
 
-void Platform::poll_input()
-{
+    // poll input
     std::copy(
         std::begin(m_state.key_presses),
         std::end(m_state.key_presses),
@@ -160,21 +170,11 @@ void Platform::poll_input()
         m_state.mouse_presses[btn] = glfwGetMouseButton(m_window, btn) == GLFW_PRESS;
 }
 
-void Platform::present_frame()
+void Platform::end_frame()
 {
     m_state.mouse_delta_x = 0;
     m_state.mouse_delta_y = 0;
 
     glfwPollEvents();
     glfwSwapBuffers(m_window);
-}
-
-void Platform::toggle_wireframe_mode()
-{
-    int mode[2];
-    glGetIntegerv(GL_POLYGON_MODE, mode);
-    if (mode[0] == GL_LINE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }

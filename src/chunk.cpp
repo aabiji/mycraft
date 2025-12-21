@@ -1,24 +1,82 @@
+#include <random>
 #include <glad/glad.h>
 
 #include "chunk.h"
+#define NOISE_IMPLEMENTATION
+#include "noise.h"
 
-Chunk::Chunk(glm::vec3 position, glm::ivec3 size)
+void Chunk::create(glm::vec3 position)
 {
-    m_size = size;
     m_position = position;
     m_num_indices = 0;
-    m_blocks.reserve(m_size.x * m_size.y * m_size.z);
 
-    generate_terrain();
+    /*
+    // procedurally generate the chunk
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0.0, 1.0);
+
+    for (int x = 0; x < CHUNK_SIZE.x; x++) {
+        for (int z = 0; z < CHUNK_SIZE.z; z++) {
+            float sample_x = m_position.x + x + dist(gen);
+            float sample_z = m_position.z + z + dist(gen);
+            int height = std::ceil(fractal_noise(sample_x, sample_z, CHUNK_SIZE.x) * CHUNK_SIZE.y);
+            for (int y = 0; y < height; y++) {
+                auto [index, _] = block_index(glm::ivec3(x, y, z));
+                m_blocks[index] = BlockType::dirt;
+            }
+        }
+    }
+    */
+
+    for (int x = 0; x < CHUNK_SIZE.x; x++) {
+        for (int y = 0; y < CHUNK_SIZE.y; y++) {
+            for (int z = 0; z < CHUNK_SIZE.z; z++) {
+                auto [index, _] = block_index(glm::ivec3(x, y, z));
+                m_blocks[index] = BlockType::dirt;
+            }
+        }
+    }
+
     setup_buffers();
     construct_mesh();
 }
 
-Chunk::~Chunk()
+void Chunk::release()
 {
     glDeleteVertexArrays(1, &m_vao);
     glDeleteBuffers(1, &m_vbo);
     glDeleteBuffers(1, &m_ebo);
+}
+
+void Chunk::render()
+{
+    glBindVertexArray(m_vao);
+    glDrawElements(GL_TRIANGLES, m_num_indices, GL_UNSIGNED_INT, 0);
+}
+
+std::pair<int, bool> Chunk::block_index(glm::ivec3 p)
+{
+    //int index = (p.x * CHUNK_SIZE.x * CHUNK_SIZE.y) + (p.y * CHUNK_SIZE.y) + p.z;
+    int index = p.z * (CHUNK_SIZE.x * CHUNK_SIZE.y) + p.y * CHUNK_SIZE.x + p.x;
+    return { index, index >= 0 && index < TOTAL_BLOCKS };
+}
+
+bool Chunk::block_present(glm::ivec3 position)
+{
+    auto [index, in_range] = block_index(position);
+    return in_range && m_blocks[index] != BlockType::empty;
+}
+
+void Chunk::place_block(
+    BlockType block, glm::ivec3 position, glm::ivec3 direction)
+{
+    auto [index, in_range] =
+        block_index(block != BlockType::empty ? position + direction : position);
+    if (in_range) {
+        m_blocks[index] = block;
+        construct_mesh();
+    }
 }
 
 void Chunk::setup_buffers()
@@ -27,13 +85,12 @@ void Chunk::setup_buffers()
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
 
+    glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
 
-    glBindVertexArray(m_vao);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
         sizeof(Vertex), (const void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
@@ -59,9 +116,9 @@ void Chunk::add_block_vertices(
         glm::vec3( 0, 1, 0), glm::vec3(0,-1, 0), // top/bottom
         glm::vec3( 0, 0, 1), glm::vec3(0, 0,-1), // front/back
     };
-    int index = x + y * m_size.x + z *(m_size.x * m_size.y);
 
     for (int i = 0; i < 6; i++) {
+        glm::vec3 voxel_position = m_position + glm::vec3(x, y, z);
         glm::ivec3 d = directions[i];
         glm::ivec3 pos(d.x + x, d.y + y, d.z + z);
 
@@ -69,7 +126,6 @@ void Chunk::add_block_vertices(
         if (!block_present(pos)) {
             int base_index = vertices.size();
             int vertices_per_face = 4;
-            glm::vec3 voxel_position = m_position + glm::vec3(x, y, z);
 
             for (int j = 0; j < vertices_per_face; j++) {
                 Vertex v = block_vertices[i * vertices_per_face + j];
@@ -77,7 +133,7 @@ void Chunk::add_block_vertices(
                 v.voxel_position = voxel_position;
 
                 // Only set the grass side texture for blocks at the surface of the chunk
-                if (y != m_size.y - 1) v.texture_coord.z = 1; // dirt texture index
+                if (y != CHUNK_SIZE.y - 1) v.texture_coord.z = 1; // dirt texture index
 
                 vertices.push_back(v);
             }
@@ -94,10 +150,10 @@ void Chunk::construct_mesh()
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
-    for (int x = 0; x < m_size.x; x++) {
-        for (int y = 0; y < m_size.y; y++) {
-            for (int z = 0; z < m_size.z; z++) {
-                if (block_present(glm::vec3(x, y, z)))
+    for (int x = 0; x < CHUNK_SIZE.x; x++) {
+        for (int y = 0; y < CHUNK_SIZE.y; y++) {
+            for (int z = 0; z < CHUNK_SIZE.z; z++) {
+                if (block_present(glm::ivec3(x, y, z)))
                     add_block_vertices(vertices, indices, x, y, z);
             }
         }
@@ -116,106 +172,3 @@ void Chunk::construct_mesh()
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_size, indices.data());
 }
 
-void Chunk::render()
-{
-    glBindVertexArray(m_vao);
-    glDrawElements(GL_TRIANGLES, m_num_indices, GL_UNSIGNED_INT, 0);
-}
-
-void Chunk::place_block(
-    BlockType block, glm::ivec3 position, glm::ivec3 direction)
-{
-    glm::vec3 p = block != BlockType::empty ? position + direction : position;
-    int index = p.z * (m_size.y * m_size.x) + p.y * m_size.x + p.x;
-    bool in_bounds =
-        p.x >= 0 && p.x < m_size.x &&
-        p.y >= 0 && p.y < m_size.y &&
-        p.z >= 0 && p.z < m_size.z;
-    if (in_bounds) {
-        m_blocks[index] = block;
-        construct_mesh();
-    }
-}
-
-void Chunk::generate_terrain()
-{
-    m_blocks.clear();
-    for (int x = 0; x < m_size.x; x++) {
-        for (int y = 0; y < m_size.y; y++) {
-            for (int z = 0; z < m_size.z; z++) {
-                m_blocks.push_back(BlockType::dirt);
-            }
-        }
-    }
-}
-
-bool Chunk::block_present(glm::ivec3 position)
-{
-    bool in_bounds =
-        position.x >= 0 && position.x < m_size.x &&
-        position.y >= 0 && position.y < m_size.y &&
-        position.z >= 0 && position.z < m_size.z;
-    int index =
-        position.z * (m_size.y * m_size.x) +
-        position.y * m_size.x + position.x;
-    return in_bounds && m_blocks[index] != BlockType::empty;
-}
-
-
-// Use the DDA algorithm to step along the ray until a voxel in the chunk is hit
-RaycastHit Chunk::raycast(
-    glm::vec3 origin, glm::vec3 direction, float max_steps)
-{
-    RaycastHit result = {
-        .position = glm::floor(origin), // start on the current voxel
-        .face_normal = glm::vec3(0, 0, 0),
-        .did_hit = true
-    };
-
-    float steps_taken = 0;
-    glm::ivec3 step_dir = glm::sign(direction);    // direction to step in each axis (1 or -1)
-    glm::vec3 steps = glm::abs(1.0f / direction); // amount of ray steps to cross one voxel boundary
-
-    // amount of ray steps to reach the next voxel boundary
-    glm::vec3 offset = glm::vec3(result.position) + glm::vec3(glm::max(step_dir, glm::ivec3(0)));
-    glm::vec3 t_max = (offset - origin) / direction;
-
-    while (steps_taken < max_steps) {
-        if (block_present(result.position))
-            return result;
-
-        // which grid line do we hit next?
-        if (t_max.x < t_max.y) {
-            if (t_max.x < t_max.z) {
-                // x boundary is closest
-                result.position.x += step_dir.x;
-                steps_taken = t_max.x;
-                t_max.x += steps.x;
-                result.face_normal = glm::vec3(-step_dir.x, 0, 0);
-            } else {
-                // z boundary is closest
-                result.position.z += step_dir.z;
-                steps_taken = t_max.z;
-                t_max.z += steps.z;
-                result.face_normal = glm::vec3(0, 0, -step_dir.z);
-            }
-        } else {
-            if (t_max.y < t_max.z) {
-                // y boundary is closest
-                result.position.y += step_dir.y;
-                steps_taken = t_max.y;
-                t_max.y += steps.y;
-                result.face_normal = glm::vec3(0, -step_dir.y, 0);
-            } else {
-                // z boundary is closest
-                result.position.z += step_dir.z;
-                steps_taken = t_max.z;
-                t_max.z += steps.z;
-                result.face_normal = glm::vec3(0, 0, -step_dir.z);
-            }
-        }
-    }
-
-    result.did_hit = false;
-    return result;
-}

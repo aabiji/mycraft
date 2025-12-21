@@ -9,24 +9,23 @@ class Platform
 {
 public:
     void open_window(const char* title, float w, float h, bool debug);
-    void set_callbacks(bool debug);
     static void shutdown();
 
-    void clear_frame();
-    void present_frame();
+    void start_frame();
+    void end_frame();
 
-    void poll_input();
-    void disable_mouse_input() const;
+    void set_mouse_mode(bool captured) const;
     void toggle_wireframe_mode();
 
-    bool key_released(int key) const;
-    bool key_pressed(int key) const;
-    bool mouse_released(int btn) const;
+    bool input_pressed(int code, bool is_mouse) const;
+    bool input_released(int code, bool is_mouse) const;
 
-    bool window_close() const;
+    bool should_close() const;
     float aspect_ratio() const;
     std::pair<float, float> mouse_delta() const;
 private:
+    void set_callbacks(bool debug);
+
     struct InputState
     {
         float mouse_x = 0.0;

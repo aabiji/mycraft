@@ -1,27 +1,24 @@
 #pragma once
 
 #include <vector>
+#include <utility>
 
 #include "block.h"
 
 enum class BlockType { dirt, empty };
 
-struct RaycastHit
-{
-    glm::ivec3 position;
-    glm::ivec3 face_normal;
-    bool did_hit;
-};
+const glm::ivec3 CHUNK_SIZE = glm::ivec3(8, 8, 8);
+const int TOTAL_BLOCKS = 8 * 8 * 8;
 
 class Chunk
 {
 public:
-    Chunk(glm::vec3 position, glm::ivec3 size);
-    ~Chunk();
+    void release();
+    void create(glm::vec3 position);
 
     void render();
     void place_block(BlockType block, glm::ivec3 position, glm::ivec3 direction);
-    RaycastHit raycast(glm::vec3 origin, glm::vec3 direction, float max_steps);
+    bool block_present(glm::ivec3 position);
 private:
     void setup_buffers();
     void add_block_vertices(
@@ -29,13 +26,10 @@ private:
         std::vector<unsigned int>& indices,
         int x, int y, int z);
     void construct_mesh();
-
-    void generate_terrain();
-    bool block_present(glm::ivec3 position);
+    std::pair<int, bool> block_index(glm::ivec3 position);
 
     int m_num_indices;
-    glm::ivec3 m_size;
-    glm::vec3 m_position;
     unsigned int m_vao, m_vbo, m_ebo;
-    std::vector<BlockType> m_blocks;
+    BlockType m_blocks[TOTAL_BLOCKS] = { BlockType::empty };
+    glm::vec3 m_position;
 };
